@@ -510,6 +510,7 @@ void write_trace_data(const std::string& filename, const std::string &data_name,
   nlohmann::json jsonOutput;
   jsonOutput["file_name"] = actualDataName;
   jsonOutput["task_name"] = Config::task_name_env;
+  jsonOutput["pid"] = pid;
 
 #ifdef BLK_IDX
   jsonOutput["io_blk_range"] = blk_trace_info;
