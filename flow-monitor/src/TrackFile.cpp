@@ -476,7 +476,7 @@ off_t TrackFile::seek(off_t offset, int whence, uint32_t index) {
 }
 
 
-void write_trace_data(const std::string& filename, TraceData& blk_trace_info, const std::string& pid) {
+void write_trace_data(const std::string& filename, const std::string &data_name, TraceData& blk_trace_info, const std::string& pid) {
   // Ensure dataLifeOutputPath is not empty
   if (Config::dataLifeOutputPath.empty()) {
       std::cerr << "Error: DATALIFE_OUTPUT_PATH is not set!" << std::endl;
@@ -488,6 +488,12 @@ void write_trace_data(const std::string& filename, TraceData& blk_trace_info, co
   size_t lastSlash = filename.find_last_of("/\\"); // Works for both Linux (/) and Windows (\)
   if (lastSlash != std::string::npos) {
       actualFilename = filename.substr(lastSlash + 1); // Get only the filename
+  }
+
+  std::string actualDataName = data_name;
+  lastSlash = data_name.find_last_of("/\\"); // Works for both Linux (/) and Windows (\)
+  if (lastSlash != std::string::npos) {
+      actualDataName = data_name.substr(lastSlash + 1); // Get only the filename
   }
 
   // Construct new full path in the DATALIFE_OUTPUT_PATH directory
@@ -502,6 +508,8 @@ void write_trace_data(const std::string& filename, TraceData& blk_trace_info, co
 
   // Create JSON object
   nlohmann::json jsonOutput;
+  jsonOutput["file_name"] = actualDataName;
+  jsonOutput["task_name"] = Config::task_name_env;
 
 #ifdef BLK_IDX
   jsonOutput["io_blk_range"] = blk_trace_info;
@@ -544,7 +552,7 @@ void TrackFile::close() {
     // std::string file_name_trace_r = ".r_blk_trace.json-" + pid + "-" + host_name + "-" + _filename;
 
     auto& blk_trace_info_r = trace_read_blk_order[_filename];
-    auto future_r = std::async(std::launch::async, write_trace_data, file_name_trace_r, std::ref(blk_trace_info_r), pid);
+    auto future_r = std::async(std::launch::async, write_trace_data, file_name_trace_r, _filename, std::ref(blk_trace_info_r), pid);
 
     DPRINTF("Writing w blk access order stat with prefix %s\n", _filename.c_str());
     // std::string file_name_trace_w = _filename + "_" + pid + "_w_blk_trace";
@@ -552,7 +560,7 @@ void TrackFile::close() {
 
     // std::string file_name_trace_w = ".w_blk_trace.json-" + pid + "-" + host_name + "-" + _filename;
     auto& blk_trace_info_w = trace_write_blk_order[_filename];
-    auto future_w = std::async(std::launch::async, write_trace_data, file_name_trace_w, std::ref(blk_trace_info_w), pid);
+    auto future_w = std::async(std::launch::async, write_trace_data, file_name_trace_w, _filename, std::ref(blk_trace_info_w), pid);
     
 
     // Wait for both async tasks to complete

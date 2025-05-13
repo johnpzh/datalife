@@ -2,3 +2,11 @@
 tags
 *.swp
 cscope.out
+
+# Build 
+build/
+cmake-build-*/
+
+# IDE
+.idea/
+.vscode/
