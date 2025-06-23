@@ -50,7 +50,7 @@ using namespace std::chrono;
 // #define WRITE_STAT_EACH 1
 
 
-TrackFile::TrackFile(std::string name, int fd, bool openFile) : 
+TrackFile::TrackFile(std::string name, int fd, bool openFile) :
   MonitorFile(MonitorFile::Type::TrackLocal, name, name, fd),
   _fileSize(0),
   _numBlks(0),
@@ -59,7 +59,7 @@ TrackFile::TrackFile(std::string name, int fd, bool openFile) :
   total_time_spent_read(0),
   total_time_spent_write(0)
 
-{ 
+{
   // DPRINTF("In Trackfile constructor openfile bool: %d\n", openFile);
   // std::cout << "TrackFile.cpp: constructor openfile bool: " << openFile << std::endl;
   _blkSize = Config::blockSizeForStat;
@@ -84,26 +84,26 @@ void TrackFile::open() {
   trace_write_blk_order.emplace(_name, TraceData());
 #endif
 
-#ifdef GATHERSTAT
+// #ifdef GATHERSTAT
   if (track_file_blk_r_stat.find(_name) == track_file_blk_r_stat.end()) {
-    track_file_blk_r_stat.insert(std::make_pair(_name, 
-						std::map<int, 
+    track_file_blk_r_stat.insert(std::make_pair(_name,
+						std::map<int,
 						std::atomic<int64_t> >()));
   }
   if (track_file_blk_r_stat_size.find(_name) == track_file_blk_r_stat_size.end()) {
-    track_file_blk_r_stat_size.insert(std::make_pair(_name, 
-						std::map<int, 
+    track_file_blk_r_stat_size.insert(std::make_pair(_name,
+						std::map<int,
 						std::atomic<int64_t> >()));
   }
   if (track_file_blk_w_stat.find(_name) == track_file_blk_w_stat.end()) {
-    track_file_blk_w_stat.insert(std::make_pair(_name, 
-						std::map<int, 
+    track_file_blk_w_stat.insert(std::make_pair(_name,
+						std::map<int,
 						std::atomic<int64_t> >()));
   }
 
   if (track_file_blk_w_stat_size.find(_name) == track_file_blk_w_stat_size.end()) {
-    track_file_blk_w_stat_size.insert(std::make_pair(_name, 
-						std::map<int, 
+    track_file_blk_w_stat_size.insert(std::make_pair(_name,
+						std::map<int,
 						std::atomic<int64_t> >()));
   }
 
@@ -114,7 +114,7 @@ void TrackFile::open() {
   if (trace_write_blk_seq.find(_name) == trace_write_blk_seq.end()) {
     trace_write_blk_seq.insert(std::make_pair(_name, std::vector<int>()));
   }
-#endif
+// #endif
 
   open_file_start_time = high_resolution_clock::now();
 
@@ -175,7 +175,7 @@ ssize_t TrackFile::read(void *buf, size_t count, uint32_t index, off_t offset) {
   // Store largest_access_block in trace_vector[2]
   trace_vector[2] = largest_access_block;
 
-  DPRINTF("TrackFile::read() recording start_block[%d] end_block[%d] largest_access_block[%d]", 
+  DPRINTF("TrackFile::read() recording start_block[%d] end_block[%d] largest_access_block[%d]",
           start_block, end_block, largest_access_block);
 
   // Determine the sequential/random status and store it in trace_vector[3]
@@ -204,11 +204,11 @@ ssize_t TrackFile::read(void *buf, size_t count, uint32_t index, off_t offset) {
       }
   }
 
-  DPRINTF("TrackFile::read() updated trace_vector: start_block[%d], end_block[%d], largest_access_block[%d], status[%d]", 
+  DPRINTF("TrackFile::read() updated trace_vector: start_block[%d], end_block[%d], largest_access_block[%d], status[%d]",
           trace_vector[0], trace_vector[1], trace_vector[2], trace_vector[3]);
 #endif
 
-#ifdef GATHERSTAT
+// #ifdef GATHERSTAT
     if (bytes_read > -1) {
         auto blockSize = Config::blockSizeForStat;
         auto file_pos = (offset == -1) ? _filePos[index] : offset; // Use offset for `pread`
@@ -235,7 +235,7 @@ ssize_t TrackFile::read(void *buf, size_t count, uint32_t index, off_t offset) {
             trace_read_blk_seq[_name].push_back(block);
         }
     }
-#endif
+// #endif
 
     if (bytes_read != -1) {
         DPRINTF("Successfully read the TrackFile\n");
@@ -337,7 +337,7 @@ ssize_t TrackFile::write(const void *buf, size_t count, uint32_t index, off_t of
   // Store largest_access_block in trace_vector[2]
   trace_vector[2] = largest_access_block;
 
-  DPRINTF("TrackFile::write() recording start_block[%d] end_block[%d] largest_access_block[%d]", 
+  DPRINTF("TrackFile::write() recording start_block[%d] end_block[%d] largest_access_block[%d]",
           start_block, end_block, largest_access_block);
 
   // Determine the sequential/random status and store it in trace_vector[3]
@@ -366,12 +366,12 @@ ssize_t TrackFile::write(const void *buf, size_t count, uint32_t index, off_t of
       }
   }
 
-  DPRINTF("TrackFile::write() updated trace_vector: start_block[%d], end_block[%d], largest_access_block[%d], status[%d]", 
+  DPRINTF("TrackFile::write() updated trace_vector: start_block[%d], end_block[%d], largest_access_block[%d], status[%d]",
           trace_vector[0], trace_vector[1], trace_vector[2], trace_vector[3]);
 
 #endif
 
-#ifdef GATHERSTAT
+// #ifdef GATHERSTAT
     if (bytes_written > 0) {
         // Determine the file position
         off_t file_position = (offset >= 0) ? offset : _filePos[index];
@@ -386,7 +386,7 @@ ssize_t TrackFile::write(const void *buf, size_t count, uint32_t index, off_t of
 #endif
             if (track_file_blk_w_stat[_name].find(block_index) == track_file_blk_w_stat[_name].end()) {
                 track_file_blk_w_stat[_name][block_index] = 1;
-                track_file_blk_w_stat_size[_name][block_index] = 
+                track_file_blk_w_stat_size[_name][block_index] =
                     std::min(bytes_written - (block_index * _blkSize), _blkSize);
             } else {
                 track_file_blk_w_stat[_name][block_index]++;
@@ -394,7 +394,7 @@ ssize_t TrackFile::write(const void *buf, size_t count, uint32_t index, off_t of
             trace_write_blk_seq[_name].push_back(block_index);
         }
     }
-#endif
+// #endif
 
     if (bytes_written > 0 && offset < 0) {
         // Update file position tracking only for sequential writes
@@ -412,8 +412,8 @@ int TrackFile::vfprintf(unsigned int pos, int count) {
   if (count != -1) {
     auto diff = _filePos[pos]; //  - _filePos[0];
     auto precNumBlocks = diff / _blkSize;
-    uint32_t startBlockForStat = precNumBlocks; 
-    uint32_t endBlockForStat = (diff + count) / _blkSize; 
+    uint32_t startBlockForStat = precNumBlocks;
+    uint32_t endBlockForStat = (diff + count) / _blkSize;
     if (((diff + count) % _blkSize)) {
       endBlockForStat++;
     }
@@ -437,7 +437,7 @@ int TrackFile::vfprintf(unsigned int pos, int count) {
   if (count != -1) {
     DPRINTF("Successfully wrote to the TrackFile\n");
     _filePos[pos] += count;
-    // _fileSize += bytes_written;  
+    // _fileSize += bytes_written;
   }
 #endif
   return count;
@@ -472,11 +472,17 @@ off_t TrackFile::seek(off_t offset, int whence, uint32_t index) {
   DPRINTF("Calling Seek in Trackfile\n");
   unixlseek_t unixLseek = (unixlseek_t)dlsym(RTLD_NEXT, "lseek");
   auto offset_loc = (*unixLseek)(_fd_orig, offset, whence);
-  return  offset_loc; 
+  return  offset_loc;
 }
 
 
-void write_trace_data(const std::string& filename, const std::string &data_name, TraceData& blk_trace_info, const std::string& pid) {
+void write_trace_data(
+  const std::string& filename,
+  const std::string &data_name,
+  TraceData& blk_trace_info,
+  const std::string &pid,
+  const std::string &_name,
+  bool is_read) {
   // Ensure dataLifeOutputPath is not empty
   if (Config::dataLifeOutputPath.empty()) {
       std::cerr << "Error: DATALIFE_OUTPUT_PATH is not set!" << std::endl;
@@ -512,6 +518,24 @@ void write_trace_data(const std::string& filename, const std::string &data_name,
   jsonOutput["task_name"] = Config::task_name_env;
   jsonOutput["pid"] = pid;
 
+  /// Calculate statistical values
+  uint64_t accumu_access_frequency = 0;
+  // uint64_t accumu_access_size = 0;  /// in byte
+  uint64_t accumu_data_volume = 0;  /// data_volume = access_frequency * access_size
+  if (is_read) {
+    for (auto& blk_info  : track_file_blk_r_stat[_name]) {
+      accumu_access_frequency += blk_info.second;
+      accumu_data_volume += blk_info.second * track_file_blk_r_stat_size[_name][blk_info.first];
+    }
+  } else { /// is write
+    for (auto& blk_info : track_file_blk_w_stat[_name]) {
+        accumu_access_frequency += blk_info.second;
+        accumu_data_volume += blk_info.second * track_file_blk_w_stat_size[_name][blk_info.first];
+    }
+  }
+  jsonOutput["access_frequency"] = accumu_access_frequency;
+  jsonOutput["data_volume"] = accumu_data_volume;
+
 #ifdef BLK_IDX
   jsonOutput["io_blk_range"] = blk_trace_info;
 #else
@@ -531,19 +555,19 @@ void write_trace_data(const std::string& filename, const std::string &data_name,
       std::cerr << "Error: Could not create file at " << fullPath << std::endl;
       return;
   }
-  
+
   file << jsonOutput.dump(4); // Pretty print with an indent of 4 spaces
   DPRINTF("write_trace_data(): blk_trace_info written to file %s", fullPath.c_str());
   file.close();
 }
 
 void TrackFile::close() {
-  // #if 0  
+  // #if 0
   DPRINTF("Calling TrackFile close \n");
     char hostname[256]; // Buffer to store the host name
     std::string host_name = (gethostname(hostname, sizeof(hostname)) == 0) ? hostname : "unknown_host";
     auto pid = std::to_string(getpid());
-  
+
     close_file_end_time = high_resolution_clock::now();
     auto elapsed_time = duration_cast<seconds>(close_file_end_time - open_file_start_time);
 
@@ -553,7 +577,14 @@ void TrackFile::close() {
     // std::string file_name_trace_r = ".r_blk_trace.json-" + pid + "-" + host_name + "-" + _filename;
 
     auto& blk_trace_info_r = trace_read_blk_order[_filename];
-    auto future_r = std::async(std::launch::async, write_trace_data, file_name_trace_r, _filename, std::ref(blk_trace_info_r), pid);
+    auto future_r = std::async(std::launch::async,
+                               write_trace_data,
+                               file_name_trace_r,
+                               _filename,
+                               std::ref(blk_trace_info_r),
+                               pid,
+                               _name,
+                               /*is_read=*/true);
 
     DPRINTF("Writing w blk access order stat with prefix %s\n", _filename.c_str());
     // std::string file_name_trace_w = _filename + "_" + pid + "_w_blk_trace";
@@ -561,8 +592,15 @@ void TrackFile::close() {
 
     // std::string file_name_trace_w = ".w_blk_trace.json-" + pid + "-" + host_name + "-" + _filename;
     auto& blk_trace_info_w = trace_write_blk_order[_filename];
-    auto future_w = std::async(std::launch::async, write_trace_data, file_name_trace_w, _filename, std::ref(blk_trace_info_w), pid);
-    
+    auto future_w = std::async(std::launch::async,
+                               write_trace_data,
+                               file_name_trace_w,
+                               _filename,
+                               std::ref(blk_trace_info_w),
+                               pid,
+                               _name,
+                               /*is_read=*/false);
+
 
     // Wait for both async tasks to complete
     future_r.get();
@@ -578,7 +616,7 @@ void TrackFile::close() {
   auto file_stat_r = file_name_r.append("_r_stat");
   current_file_stat_r.open(file_stat_r, std::ios::out | std::ios::app);
   if (!current_file_stat_r) { DPRINTF("File for read stat collection not created!");}
-  current_file_stat_r << _filename << " " << "Block no." << " " << "Frequency" << " " 
+  current_file_stat_r << _filename << " " << "Block no." << " " << "Frequency" << " "
 		      << "Access size in byte" << std::endl;
 
   auto sum_weight_r = 0; // TODO: Fix FPE
@@ -586,7 +624,7 @@ void TrackFile::close() {
   for (auto& blk_info  : track_file_blk_r_stat[_name]) {
     cumulative_weighted_sum_r += blk_info.second * track_file_blk_r_stat_size[_name][blk_info.first];
     sum_weight_r += blk_info.second;
-    current_file_stat_r << blk_info.first << " " << blk_info.second << " " 
+    current_file_stat_r << blk_info.first << " " << blk_info.second << " "
 			<< track_file_blk_r_stat_size[_name][blk_info.first] << std::endl;
   }
 
@@ -603,9 +641,9 @@ void TrackFile::close() {
   auto file_stat_w = file_name_w.append("_w_stat");
   current_file_stat_w.open(file_stat_w, std::ios::out | std::ios::app);
   if (!current_file_stat_w) {DPRINTF("File for write stat collection not created!");}
-  current_file_stat_w << _filename << " " << "Block no." << " " << "Frequency" << " " 
+  current_file_stat_w << _filename << " " << "Block no." << " " << "Frequency" << " "
 		      << "Access size in byte" << std::endl;
-  
+
   auto sum_weight_w = 0; // TODO: Fix FPE
   auto cumulative_weighted_sum_w = 0;
   for (auto& blk_info  : track_file_blk_w_stat[_name]) {
@@ -616,9 +654,9 @@ void TrackFile::close() {
   }
 
   if (sum_weight_w !=0 ) {
-    auto write_io_rate = cumulative_weighted_sum_w / sum_weight_w; 
+    auto write_io_rate = cumulative_weighted_sum_w / sum_weight_w;
     auto write_request_rate =  elapsed_time / sum_weight_w;
-  // TODO: fix below: elapsed_time  // if (elapsed_time == 0) {elapsed_time = 1;}  
+  // TODO: fix below: elapsed_time  // if (elapsed_time == 0) {elapsed_time = 1;}
   //  auto io_intensity = (total_time_spent_read + total_time_spent_write)/elapsed_time;
   }
   DPRINTF("Writing r blk access order stat\n");
@@ -630,11 +668,11 @@ void TrackFile::close() {
   auto file_trace_stat_r = file_name_trace_r.append("_r_trace_stat");
   current_file_trace_r.open(file_trace_stat_r, std::ios::out | std::ios::app);
   if (!current_file_trace_r) {DPRINTF("File for read trace stat collection not created!");}
-  auto const& blk_trace_info_r  = trace_read_blk_seq[_name]; 
+  auto const& blk_trace_info_r  = trace_read_blk_seq[_name];
   for (auto const& blk_: blk_trace_info_r) {
     current_file_trace_r << blk_ << std::endl;
   }
-  
+
 
   DPRINTF("Writing w blk access order stat\n");
   // write blk access stat in a file
@@ -651,7 +689,7 @@ void TrackFile::close() {
     current_file_trace_w << blk_ << std::endl;
   }
   // #endif
-  #endif
+#endif
 }
 
 
