@@ -24,12 +24,17 @@
 //#define TIMEON(...) __VA_ARGS__
 #define TIMEON(...)
 // #define DPRINTF(...) fprintf(stderr, __VA_ARGS__)
+// #define DPRINTF(...)
+#ifdef LIBDEBUG
+#define DPRINTF(...) fprintf(stderr, __VA_ARGS__)
+#else
 #define DPRINTF(...)
+#endif
 #define MYDPRINTF(...) fprintf(stderr, __VA_ARGS__)
 #define TRACKFILECHANGES 1
 
 extern int removeStr(char *s, const char *r);
-MonitorFile::MonitorFile(MonitorFile::Type type, std::string name, std::string metaName, int fd) : 
+MonitorFile::MonitorFile(MonitorFile::Type type, std::string name, std::string metaName, int fd) :
     Loggable(Config::MonitorFileLog, "MonitorFile"),
     _type(type),
     _name(name),
@@ -50,7 +55,7 @@ MonitorFile::MonitorFile(MonitorFile::Type type, std::string name, std::string m
     // std::cout << "  Name: " << name << std::endl;
     // std::cout << "  MetaName: " << metaName << std::endl;
     // std::cout << "  File Descriptor (fd): " << fd << std::endl;
-    
+
 #ifdef TRACKFILECHANGES
 
     bool matched = true;
@@ -63,7 +68,7 @@ MonitorFile::MonitorFile(MonitorFile::Type type, std::string name, std::string m
             break;
         }
     }
-    
+
     if (matched) {
         DPRINTF("File %s matched pattern. Reading metadata...\n", name.c_str());
         readMetaInfo();
@@ -92,7 +97,7 @@ bool MonitorFile::readMetaInfo() {
     auto start = Timer::getCurrentTime();
     unixread_t unixRead = (unixread_t)dlsym(RTLD_NEXT, "read");
     unixlseek_t unixlseek = (unixlseek_t)dlsym(RTLD_NEXT, "lseek");
-   
+
     if (_fd < 0) {
         log(this) << "ERROR: Failed to open local metafile " << _metaName.c_str() << " : " << strerror(errno) << std::endl;
         return 0;
@@ -133,7 +138,7 @@ bool MonitorFile::readMetaInfo() {
             hostAddr = "\0";
             port = 0;
             fileName = "\0";
-	    
+
             while(std::getline(ss, curLine)) {
                 if(curLine.compare(0, 5, "host=") == 0) {
                     hostAddr = curLine.substr(5, (curLine.length() - 5));
@@ -191,7 +196,7 @@ bool MonitorFile::readMetaInfo() {
                     numServers++;
                 }
             }
-	    
+
             state = DEFAULT;
             break;
         default:
@@ -204,7 +209,7 @@ bool MonitorFile::readMetaInfo() {
             break;
         }
     }
-    
+
     delete[] meta;
     TIMEON(fprintf(stderr, "Meta Time: %lu\n", Timer::getCurrentTime() - t1));
     _initMetaTime = Timer::getCurrentTime()-start;
@@ -329,8 +334,8 @@ MonitorFile *MonitorFile::addNewMonitorFile(MonitorFile::Type type, std::string 
                 }
                 return temp;
             });
-    } else */ 
-     
+    } else */
+
     if (type == MonitorFile::TrackLocal) {
       DPRINTF("Trackfile going to be added to the Trackable \n");
         return Trackable<std::string, MonitorFile *>::AddTrackable(
@@ -339,20 +344,20 @@ MonitorFile *MonitorFile::addNewMonitorFile(MonitorFile::Type type, std::string 
                 MonitorFile *temp = new TrackFile(fileName, fd, open);
                 if (open && temp && temp->active() == 0) {
                     delete temp;
-		    DPRINTF("Can't add a TrackFile with Filename %s fd %d", 
+		    DPRINTF("Can't add a TrackFile with Filename %s fd %d",
 			    fileName.c_str(), fd);
 		    return NULL;
                 }
 		DPRINTF("Adding (filename,Trackfile) to map\n");
                 return temp;
             });
-    }  
+    }
     return NULL;
 }
 
 //fileName is the metaFile
 bool MonitorFile::removeMonitorFile(std::string fileName) {
-  DPRINTF("Removing Monitorfile %s\n", fileName.c_str());  
+  DPRINTF("Removing Monitorfile %s\n", fileName.c_str());
   if (strstr(fileName.c_str(), ".tmp") != NULL) {
         char temp[1000];
         strcpy(temp, fileName.c_str());

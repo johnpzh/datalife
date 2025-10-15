@@ -76,7 +76,7 @@ Timer::~Timer() {
         // Add main metrics to JSON
         for (int i = 0; i < lastMetric; i++) {
             for (int j = 0; j < last; j++) {
-                jsonOutput[myprogname][metricTypeName[i]][metricName[j]] = 
+                jsonOutput[myprogname][metricTypeName[i]][metricName[j]] =
                     { _time[i][j] / billion, _cnt[i][j], _amt[i][j] };
             }
         }
@@ -91,7 +91,7 @@ Timer::~Timer() {
 
             for (int i = 0; i < lastMetric; i++) {
                 for (int j = 0; j < last; j++) {
-                    jsonOutput[myprogname]["threads"][threadId][metricTypeName[i]][metricName[j]] = 
+                    jsonOutput[myprogname]["threads"][threadId][metricTypeName[i]][metricName[j]] =
                         { itor->second->time[i][j]->load(std::memory_order_relaxed) / billion,
                           itor->second->cnt[i][j]->load(std::memory_order_relaxed),
                           itor->second->amt[i][j]->load(std::memory_order_relaxed) };
@@ -105,18 +105,18 @@ Timer::~Timer() {
         if (Config::dataLifeOutputPath.empty()) {
             std::cerr << "Error: DATALIFE_OUTPUT_PATH is not set!" << std::endl;
             return;
-        }        
+        }
 
-        // Add task PID to file name 
+        // Add task PID to file name
         std::string jsonOutputFileName = "monitor_timer." + std::to_string(getpid()) + "-" + host_name + ".datalife.json";
         std::string fullPath = Config::dataLifeOutputPath + "/" + jsonOutputFileName;
-        std::cerr << "write_trace_data(): writing to " << fullPath << std::endl;
-        
+        std::cerr << "in ~Timer(): write_trace_data(): writing to " << fullPath << std::endl;
+
         // // Ensure the output directory exists
         // std::filesystem::create_directories(Config::dataLifeOutputPath);
-        
+
         // Open the file at the correct location (append mode)
-        std::ofstream log_file(fullPath, std::ios::out | std::ios::app); 
+        std::ofstream log_file(fullPath, std::ios::out | std::ios::app);
         if (!log_file) {
             std::cerr << "Failed to open " << fullPath << std::endl;
         } else {
@@ -165,7 +165,7 @@ Timer::~Timer() {
         }
         dprintf(stdoutcp, "[MONITOR] %s\n%s\n", myprogname.c_str(), ss.str().c_str());
     }
-    
+
     for(itor = _thread_timers->begin(); itor != _thread_timers->end(); itor++) {
         delete itor->second;
     }
@@ -236,7 +236,7 @@ void Timer::end(MetricType type, Metric metric) {
         _lock.readerUnlock();
     }
 
-    
+
 #ifdef TIMER_JSON
     // TODO: Remove the last comma from the monitor_timer.datalife.json file
 #endif
@@ -288,7 +288,7 @@ void Timer::addThread(std::thread::id id) {
 //     _lock.readerLock();
 //     bool ret = (_thread_timers->find(id) != _thread_timers->end());
 //     _lock.readerUnlock();
-    
+
 //     if (!ret && addIfNotFound)
 //         addThread(id);
 

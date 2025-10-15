@@ -39,12 +39,12 @@
 
 #define ADD_THROW __THROW
 
-#define DPRINTF(...)
-// #ifdef LIBDEBUG
-// #define DPRINTF(...) fDPRINTF(stderr, __VA_ARGS__)
-// #else
 // #define DPRINTF(...)
-// #endif
+#ifdef LIBDEBUG
+#define DPRINTF(...) fprintf(stderr, __VA_ARGS__)
+#else
+#define DPRINTF(...)
+#endif
 // #define MYDPRINTF(...) fDPRINTF(stderr, __VA_ARGS__)
 
 #define TRACKFILECHANGES 1
@@ -52,13 +52,13 @@
     // std::vector<std::string> patterns = {
     //     "*.fits", "*.vcf", "*.fna",
     //     // "*.*.bt2", "*.fastq", "*.fasta.amb", "*.fasta.sa", "*.fasta.bwt",
-    //     // "*.fasta.pac", "*.fasta.ann", "*.fasta", 
-    //     // "*.out", "*.dot", 
-    //     "*.gz", "*.tar.gz", 
-    //     "*.dcd", "*.pt", "*.nc", 
+    //     // "*.fasta.pac", "*.fasta.ann", "*.fasta",
+    //     // "*.out", "*.dot",
+    //     "*.gz", "*.tar.gz",
+    //     "*.dcd", "*.pt", "*.nc",
     //     //"*.txt","*.*.*.txt", //"*.pdb",
     //     "SAS", "EAS", "GBR", "AMR", "AFR", "EUR", "ALL",
-        
+
 
 	// // "*.fits", "*.tbl", "1\-fit\..*", "*.hdr", "*.png"
     //     // "*.h5", "*.npy", "*.npz",
@@ -67,16 +67,16 @@
     //     // "*.stf", "*.lht", "*decon.out", "*.gz",
     //     // "*.safetensors", "*.pt",
     //     // "*.model",
-    //     // "*.pdf", 
+    //     // "*.pdf",
     //     // "*model.bin",
     //     // "*.arrow", "*model.bin",
-    //     // "*merges.txt", 
-    //     // "*events.out.*", 
-    //     // "*config.json", 
-    //     // "*tokenizer.json", 
-    //     // "*vocab.json", 
-    //     // "*special_tokens_map.json", 
-    //     // "*tokenizer_config.json", 
+    //     // "*merges.txt",
+    //     // "*events.out.*",
+    //     // "*config.json",
+    //     // "*tokenizer.json",
+    //     // "*vocab.json",
+    //     // "*special_tokens_map.json",
+    //     // "*tokenizer_config.json",
     //     // "*generation_config.json"
 
     // };
@@ -105,7 +105,7 @@ std::vector<std::string> split_patterns(const std::string& input, char delimiter
     }
     // Always include default pattern
     patterns.push_back("*.datalifetest");
-    
+
     return patterns;
 }
 
@@ -123,8 +123,8 @@ static std::unordered_set<FILE *> track_fp;
 static std::unordered_set<int> ignore_fd;
 static std::unordered_set<FILE *> ignore_fp;
 
-// // The following map stores the filename, as well as the file descriptors, mode. We 
-// // Can extend this easily to save more info as part of the tuple. 
+// // The following map stores the filename, as well as the file descriptors, mode. We
+// // Can extend this easily to save more info as part of the tuple.
 // std::map<std::string, std::multimap<int, std::tuple<int>>> file_info;
 
 // std::map<int, std::string> file_info; // to reverse-lookup filename from fd
@@ -204,7 +204,7 @@ int removeStr(char *s, const char *r);
 inline bool checkMeta(const char *pathname, std::string &path, std::string &file, MonitorFile::Type &type) {
 
 
-  DPRINTF("Checkmeta calling open on file %s\n", pathname);
+    DPRINTF("Checkmeta calling open on file %s\n", pathname);
     int fd = (*unixopen)(pathname, O_RDONLY);
 
     if(fd >= 0)
@@ -213,8 +213,8 @@ inline bool checkMeta(const char *pathname, std::string &path, std::string &file
         //std::string types[3] = {"input", "output", "local"};
         //MonitorFile::Type tokType[3] = {MonitorFile::Input, MonitorFile::Output, MonitorFile::Local};
         std::string types = "TrackLocal";
-	MonitorFile::Type tokType = MonitorFile::TrackLocal;
-	int bufferSize = (monitorVersion.length() + 13); //need space for monitorVersion + \n + type= + (the type) + \0
+        MonitorFile::Type tokType = MonitorFile::TrackLocal;
+        int bufferSize = (monitorVersion.length() + 13); //need space for monitorVersion + \n + type= + (the type) + \0
         char *meta = new char[bufferSize+1];
 
         int ret = (*unixread)(fd, (void *)meta, bufferSize);
@@ -247,7 +247,7 @@ inline bool checkMeta(const char *pathname, std::string &path, std::string &file
                 path = pathname;
                 file = pathname;
                 type = tokType;
-                // DPRINTF("Path: %s File: %s\n", path.c_str(), file.c_str());
+                DPRINTF("Path: %s File: %s\n", path.c_str(), file.c_str());
                 delete[] meta;
                 return true;
             }
@@ -287,23 +287,23 @@ inline void removeFileStream(unixfclose_t posixFun, FILE *fp) {
 
 template <typename Func, typename FuncLocal, typename... Args>
 inline auto innerWrapper(int fd, bool &isMonitorFile, Func monitorFun, FuncLocal localFun, Args... args) {
-    DPRINTF("[MONITOR] in innerwrapper fd: %ld\n", fd);
+    DPRINTF("[MONITOR] in innerwrapper int fd: %ld\n", (long int) fd);
 
     MonitorFile *file = NULL;
     unsigned int fp = 0;
 
     DPRINTF("[MONITOR] in innerwrapper 3 init val: %d , fd val %d \n", init, fd);
 
-    
+
     if (init && MonitorFileDescriptor::lookupMonitorFileDescriptor(fd, file, fp)) {
       DPRINTF("Found a file with fd %d\n", fd);
       isMonitorFile = true;
-      DPRINTF("calling Monitor function\n");	
+      DPRINTF("calling Monitor function\n");
       return monitorFun(file, fp, args...);
     }
     // else if (not internal write) {
     // do track
-    
+
     //}
     DPRINTF("[MONITOR] in innerwrapper 3 for write calling localfun\n");
 
@@ -315,7 +315,7 @@ inline auto innerWrapper(FILE *fp, bool &isMonitorFile, Func monitorFun, FuncLoc
   // if (write_printf == true) {
   //   DPRINTF("[MONITOR] in innerwrapper 2 for write\n");
   // }
-  DPRINTF("[MONITOR] in innerwrapper fp: %ld\n", fp);
+  DPRINTF("[MONITOR] in innerwrapper FILE * fp: %ld\n", (long int) fp);
 
   if (init) {
         ReaderWriterLock *lock = NULL;
@@ -343,7 +343,9 @@ inline auto innerWrapper(const char *pathname, bool &isMonitorFile, Func monitor
   std::string path;
   std::string file;
   MonitorFile::Type type;
-  
+
+  DPRINTF("[MONITOR] in innerwrapper const char *pathname: %s\n", pathname);
+
   std::string test_tty(pathname);
   if(test_tty.find("tty") != std::string::npos) {
     return posixFun(args...);
@@ -367,11 +369,11 @@ inline auto innerWrapper(const char *pathname, bool &isMonitorFile, Func monitor
 
   if (init && checkMeta(pathname, path, file, type)) {
     isMonitorFile = true;
-    // DPRINTF("monitorfun With file %s\n", pathname);
+    DPRINTF("monitorfun With file %s\n", pathname);
     return monitorFun(file, path, type, args...);
   }
-  // DPRINTF("[MONITOR] in innerwrapper calling posix\n");
-  
+  DPRINTF("[MONITOR] in innerwrapper calling posix (const char *pathname: %s)\n", pathname);
+
 
   return posixFun(args...);
 }
@@ -436,7 +438,7 @@ inline void removeFromSet(std::unordered_set<FILE *> &set, FILE *value, unixfclo
 //         removeFromSet(ignore_fd, retValue, posixFun);
 //         timer->end(Timer::MetricType::local, Timer::Metric::dummy); // Offset the call to start()
 //     }
-//     else { 
+//     else {
 //         // End Timers!
 //         if (track) {
 //             // Maintain the track_fd set
@@ -476,11 +478,11 @@ inline void removeFromSet(std::unordered_set<FILE *> &set, FILE *value, unixfclo
 
 template <typename FileId, typename Func, typename FuncPosix, typename... Args>
 auto outerWrapper(const char *name, FileId fileId, Timer::Metric metric, Func monitorFun, FuncPosix posixFun, Args... args) {
-    DPRINTF("Lib.h: outerWrapper() for function: %s\n", name);
+    DPRINTF("Lib.h: outerWrapper() for function: [%s] (init value: %d)\n", name, (int) init);
 
-  if (!init) {
-      posixFun = (FuncPosix)dlsym(RTLD_NEXT, name);
-      return posixFun(args...);
+    if (!init) {
+        posixFun = (FuncPosix)dlsym(RTLD_NEXT, name);
+        return posixFun(args...);
     }
 
     timer->start();
@@ -495,7 +497,7 @@ auto outerWrapper(const char *name, FileId fileId, Timer::Metric metric, Func mo
     bool isMonitorFile = false;
 
     auto retValue = innerWrapper(fileId, isMonitorFile, monitorFun, posixFun, args...);
-    DPRINTF("Lib.h: outerWrapper() innerWrapper retValue: %d\n", retValue);
+    DPRINTF("Lib.h: outerWrapper() [%s] innerWrapper retValue: %ld\n", name, (long int) retValue);
 
     if (ignore) {
         //Maintain the ignore_fd set
@@ -505,7 +507,7 @@ auto outerWrapper(const char *name, FileId fileId, Timer::Metric metric, Func mo
     }
     else { //End Timers!
         if (track) {
-            DPRINTF("Lib.h: outerWrapper() track fd: %d (timmer local)\n", track_fd);
+            DPRINTF("Lib.h: outerWrapper() [%s] track fd: %d (timmer local)\n", name, (int) track_fd.size());
             //Maintain the track_fd set
             addToSet(track_fd, retValue, posixFun);
             removeFromSet(track_fd, retValue, posixFun);
@@ -519,11 +521,11 @@ auto outerWrapper(const char *name, FileId fileId, Timer::Metric metric, Func mo
             timer->end(Timer::MetricType::local, metric);
         }
         else if (isMonitorFile){
-            DPRINTF("Lib.h: outerWrapper() isMonitorFile fd: %d (timmer monitor)\n", track_fd);
+            DPRINTF("Lib.h: outerWrapper() [%s] isMonitorFile fd: %d (timmer monitor)\n", name, (int) track_fd.size());
             timer->end(Timer::MetricType::monitor, metric);
         }
         else{
-            DPRINTF("Lib.h: outerWrapper() !track && !isMonitorFile fd: %d (timmer system)\n", track_fd);
+            DPRINTF("Lib.h: outerWrapper() [%s] !track && !isMonitorFile fd: %d (timmer system)\n", name, (int) track_fd.size());
             if (std::string("read").compare(std::string(name)) == 0 ||
             std::string("write").compare(std::string(name)) == 0){
                 ssize_t ret = *reinterpret_cast<ssize_t*> (&retValue);
@@ -534,6 +536,7 @@ auto outerWrapper(const char *name, FileId fileId, Timer::Metric metric, Func mo
             timer->end(Timer::MetricType::system, metric);
         }
     }
+    DPRINTF("Lib.h: outerWrapper() [%s] retValue: %ld\n\n", name, (long int) retValue);
     return retValue;
 }
 
@@ -616,7 +619,7 @@ void rewind(FILE *fp);
 
 
 int trackFileOpen(std::string name, std::string metaName, MonitorFile::Type type, const char *pathname, int flags, int mode);
-int monitorOpenat(std::string name, std::string metaName, MonitorFile::Type type, 
+int monitorOpenat(std::string name, std::string metaName, MonitorFile::Type type,
 		int dirfd, const char *pathname, int flags, int mode);
-int trackFileOpenat(std::string name, std::string metaName, MonitorFile::Type type, 
+int trackFileOpenat(std::string name, std::string metaName, MonitorFile::Type type,
 		    int dirfd, const char *pathname, int flags, int mode);

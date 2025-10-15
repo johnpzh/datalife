@@ -175,7 +175,7 @@ ssize_t TrackFile::read(void *buf, size_t count, uint32_t index, off_t offset) {
   // Store largest_access_block in trace_vector[2]
   trace_vector[2] = largest_access_block;
 
-  DPRINTF("TrackFile::read() recording start_block[%d] end_block[%d] largest_access_block[%d]",
+  DPRINTF("TrackFile::read() recording start_block[%d] end_block[%d] largest_access_block[%d]\n",
           start_block, end_block, largest_access_block);
 
   // Determine the sequential/random status and store it in trace_vector[3]
@@ -204,7 +204,7 @@ ssize_t TrackFile::read(void *buf, size_t count, uint32_t index, off_t offset) {
       }
   }
 
-  DPRINTF("TrackFile::read() updated trace_vector: start_block[%d], end_block[%d], largest_access_block[%d], status[%d]",
+  DPRINTF("TrackFile::read() updated trace_vector: start_block[%d], end_block[%d], largest_access_block[%d], status[%d]\n",
           trace_vector[0], trace_vector[1], trace_vector[2], trace_vector[3]);
 #endif
 
@@ -248,6 +248,7 @@ ssize_t TrackFile::read(void *buf, size_t count, uint32_t index, off_t offset) {
     close();
 #endif
 
+    DPRINTF("Finished for _name: %s\n", _name.c_str());
     return bytes_read;
 }
 
@@ -337,7 +338,7 @@ ssize_t TrackFile::write(const void *buf, size_t count, uint32_t index, off_t of
   // Store largest_access_block in trace_vector[2]
   trace_vector[2] = largest_access_block;
 
-  DPRINTF("TrackFile::write() recording start_block[%d] end_block[%d] largest_access_block[%d]",
+  DPRINTF("TrackFile::write() recording start_block[%d] end_block[%d] largest_access_block[%d]\n",
           start_block, end_block, largest_access_block);
 
   // Determine the sequential/random status and store it in trace_vector[3]
@@ -366,7 +367,7 @@ ssize_t TrackFile::write(const void *buf, size_t count, uint32_t index, off_t of
       }
   }
 
-  DPRINTF("TrackFile::write() updated trace_vector: start_block[%d], end_block[%d], largest_access_block[%d], status[%d]",
+  DPRINTF("TrackFile::write() updated trace_vector: start_block[%d], end_block[%d], largest_access_block[%d], status[%d]\n",
           trace_vector[0], trace_vector[1], trace_vector[2], trace_vector[3]);
 
 #endif
@@ -505,10 +506,10 @@ void write_trace_data(
   // Construct new full path in the DATALIFE_OUTPUT_PATH directory
   std::string fullPath = Config::dataLifeOutputPath + "/" + actualFilename;
 
-  DPRINTF("write_trace_data(): writing to %s", fullPath.c_str());
+  DPRINTF("write_trace_data(): writing to %s\n", fullPath.c_str());
 
   if (blk_trace_info.empty()) {
-      DPRINTF("write_trace_data(): blk_trace_info is empty");
+      DPRINTF("write_trace_data(): blk_trace_info is empty\n");
       return;  // Do nothing if blk_trace_info is empty
   }
 
@@ -557,7 +558,7 @@ void write_trace_data(
   }
 
   file << jsonOutput.dump(4); // Pretty print with an indent of 4 spaces
-  DPRINTF("write_trace_data(): blk_trace_info written to file %s", fullPath.c_str());
+  DPRINTF("write_trace_data(): blk_trace_info written to file %s\n", fullPath.c_str());
   file.close();
 }
 
@@ -615,7 +616,7 @@ void TrackFile::close() {
   file_name_r.append(pid);
   auto file_stat_r = file_name_r.append("_r_stat");
   current_file_stat_r.open(file_stat_r, std::ios::out | std::ios::app);
-  if (!current_file_stat_r) { DPRINTF("File for read stat collection not created!");}
+  if (!current_file_stat_r) { DPRINTF("File for read stat collection not created!\n");}
   current_file_stat_r << _filename << " " << "Block no." << " " << "Frequency" << " "
 		      << "Access size in byte" << std::endl;
 
@@ -640,7 +641,7 @@ void TrackFile::close() {
   file_name_w.append(pid);
   auto file_stat_w = file_name_w.append("_w_stat");
   current_file_stat_w.open(file_stat_w, std::ios::out | std::ios::app);
-  if (!current_file_stat_w) {DPRINTF("File for write stat collection not created!");}
+  if (!current_file_stat_w) {DPRINTF("File for write stat collection not created!\n");}
   current_file_stat_w << _filename << " " << "Block no." << " " << "Frequency" << " "
 		      << "Access size in byte" << std::endl;
 
@@ -667,7 +668,7 @@ void TrackFile::close() {
   file_name_trace_r.append(pid);
   auto file_trace_stat_r = file_name_trace_r.append("_r_trace_stat");
   current_file_trace_r.open(file_trace_stat_r, std::ios::out | std::ios::app);
-  if (!current_file_trace_r) {DPRINTF("File for read trace stat collection not created!");}
+  if (!current_file_trace_r) {DPRINTF("File for read trace stat collection not created!\n");}
   auto const& blk_trace_info_r  = trace_read_blk_seq[_name];
   for (auto const& blk_: blk_trace_info_r) {
     current_file_trace_r << blk_ << std::endl;
@@ -682,7 +683,7 @@ void TrackFile::close() {
   file_name_trace_w.append(pid);
   auto file_trace_stat_w = file_name_trace_w.append("_w_trace_stat");
   current_file_trace_w.open(file_trace_stat_w, std::ios::out | std::ios::app);
-  if (!current_file_trace_w) {DPRINTF("File for write trace stat collection not created!");}
+  if (!current_file_trace_w) {DPRINTF("File for write trace stat collection not created!\n");}
   // current_file_trace_w << _filename << " " << "Block no." << " " << "Frequency" << std::endl;
   auto const& blk_trace_info_w = trace_write_blk_seq[_name];
   for (auto const& blk_: blk_trace_info_w) {
