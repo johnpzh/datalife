@@ -14,6 +14,8 @@
 cmake_minimum_required(VERSION 2.8...3.27)
 project(DataLife VERSION 0.1.0)
 
+set(CMAKE_CXX_STANDARD 20)
+
 
 #****************************************************************************
 # Options

@@ -44,6 +44,16 @@
 #include <cassert>
 #include <errno.h>
 
+/// Copied from older version Linux's /usr/include/sys/stat.h
+/// This is from GNU C Library (GNU libc) stable release version 2.17 (/lib/libc.so.6),
+/// but removed in 2.34.
+#ifndef _STAT_VER
+# define _STAT_VER	0
+#endif
+#ifndef _MKNOD_VER
+# define _MKNOD_VER	0
+#endif
+
 // #define printf(...) fprintf(stderr, __VA_ARGS__)
 // #ifdef LIBDEBUG
 // #define printf(...) fprintf(stderr, __VA_ARGS__)

@@ -516,7 +516,8 @@ void write_trace_data(
   // Create JSON object
   nlohmann::json jsonOutput;
   jsonOutput["file_name"] = actualDataName;
-  jsonOutput["task_name"] = Config::task_name_env;
+  // jsonOutput["task_name"] = Config::task_name_env;
+  jsonOutput["task_name"] = getenv("DATALIFE_TASK_NAME") ? std::string(getenv("DATALIFE_TASK_NAME")) : "task_name";
   jsonOutput["pid"] = pid;
 
   /// Calculate statistical values
